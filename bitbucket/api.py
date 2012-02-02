@@ -122,6 +122,12 @@ class BitBucket(object):
         url = api_base + 'emails/'
         return json.loads(self.load_url(url))
 
+    @requires_authentication
+    def repositories(self):
+        """Returns a list of repositories for which the authenticated user has access."""
+        url = api_base + 'user/repositories'
+        return json.loads(self.load_url(url))
+
     def __repr__(self):
         extra = ''
         if all((self.username, self.password)):
@@ -223,6 +229,23 @@ class Repository(object):
     def set_privilege(self, user, privilege):
         url = api_base + 'privileges/%s/%s/%s/' % (self.username, self.slug, user)
         return json.loads(self.bb.load_url(url, method="PUT", data=privilege))
+
+    @requires_authentication
+    def set_group_privilege(self, group_owner, group, privilege):
+        url = api_base + 'group-privileges/%s/%s/%s/%s/' % (self.username, self.slug, group_owner, group)
+        return json.loads(self.bb.load_url(url, method="PUT", data=privilege))
+
+    @requires_authentication
+    def group_privileges(self):
+        url = api_base + 'group-privileges/%s/%s' % (self.username, self.slug)
+        return json.loads(self.bb.load_url(url))
+
+    @requires_authentication
+    def remove_group_privilege(self, group_owner, group):
+        url = api_base + 'group-privileges/%s/%s/%s/%s/' % (self.username, self.slug, group_owner, group)
+        self.bb.load_url(url, method="DELETE")
+        return True
+        
 
     def __repr__(self):
         return '<Repository: %s\'s %s>' % (self.username, self.slug)

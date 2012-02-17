@@ -88,7 +88,10 @@ class BitBucket(object):
 
     def repository(self, username, slug):
         return Repository(self, username, slug)
-    
+
+    def group(self, username, groupname):
+        return Group(self, username, groupname)
+
     @property
     @requires_authentication
     def ssh_keys(self):
@@ -160,6 +163,33 @@ class User(object):
 
     def __repr__(self):
         return '<User: %s>' % self.username
+
+class Group(object):
+    def __init__(self, bb, username, groupname):
+        self.bb = bb
+        self.username = username
+        self.groupname = groupname
+        self.base_url = api_base + 'groups/%s/%s/' % (self.username, self.groupname)
+
+    @requires_authentication
+    def members(self):
+        """List the members in the group"""
+        url = self.base_url + 'members/'
+        return json.loads(self.bb.load_url(url))
+
+    @requires_authentication
+    def add_user(self, user):
+        """Add a user to the group (bitbucket username or validated email address)"""
+        url = self.base_url + 'members/%s/' % (user)
+        return json.loads(self.bb.load_url(url, method="PUT"))
+
+    @requires_authentication
+    def remove_user(self, user):
+        """Remove a user from the group (bitbucket username or validated email address)"""
+        url = self.base_url + '/members/%s/' % (user)
+        return json.loads(self.bb.load_url(url, method="DELETE"))
+
+
 
 class Repository(object):
     def __init__(self, bb, username, slug):
